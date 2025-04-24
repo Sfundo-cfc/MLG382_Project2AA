@@ -1,5 +1,5 @@
-dash
+dash==2.9.3
+numpy
 pandas
-scikit-learn
-tensorflow
+scikit_learn
 plotly
