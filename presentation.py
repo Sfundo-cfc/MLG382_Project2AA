@@ -661,7 +661,7 @@ def predict_fraud(n_clicks, customer_id, merchant_id, amount, card_type,
                 'background-color': COLORS['fraudulent'] if is_fraud else COLORS['legitimate'],
                 'border-radius': '5px'
             })
-       # Progress bar container style
+     # Progress bar container style
 ], style={'background-color': '#e0e0e0', 'border-radius': '5px', 
           'height': '10px', 'width': '100%', 'margin-bottom': '20px'})
     
