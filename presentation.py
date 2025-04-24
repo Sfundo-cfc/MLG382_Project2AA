@@ -20,7 +20,19 @@ app = dash.Dash(
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'
     ]
 )
+
+# The server instance, necessary for deployment
 server = app.server
+
+# Add your layout and callbacks here
+
+# Check if this script is the main module and run the server
+if __name__ == '__main__':
+    # Get the port from the environment variable (Render sets this for you)
+    port = int(os.environ.get('PORT', 8050))  # Default to 8050 if not provided
+
+    # Run the app on 0.0.0.0 and the assigned port
+    app.run_server(debug=True, host='0.0.0.0', port=port)
 
 # Create dataframe for bar chart
 fraud_counts = sample_data['is_fraudulent'].value_counts().reset_index()
