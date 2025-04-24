@@ -4,10 +4,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import os
 from business_layer import FraudDetectionModel
 
 # Initialize the model
-model = FraudDetectionModel(model_path='fraud_detection_model.pkl')
+model = FraudDetectionModel(model_path='fraud_detection_classifier_model.pkl')
 
 # Generate some sample data
 sample_data = pd.read_csv('synthetic_financial_data.csv')
