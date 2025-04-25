@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -55,7 +56,7 @@ def select_features(df_processed):
     return X, y
 
 # 4. Model building and evaluation
-def build_and_evaluate_model(X_train, X_test, y_train, y_test):
+def build_and_evaluate_pipeline(X_train, X_test, y_train, y_test):
     numeric_features = ['customer_id', 'merchant_id', 'amount', 'customer_age', 'is_weekend',
                         'customer_avg_amount', 'customer_std_amount', 'customer_max_amount',
                         'customer_transaction_count', 'merchant_avg_amount', 'merchant_std_amount',
@@ -83,54 +84,12 @@ def build_and_evaluate_model(X_train, X_test, y_train, y_test):
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
     
-    # Return the fitted preprocessor and classifier separately
-    return pipeline.named_steps['preprocessor'], pipeline.named_steps['classifier']
+    return pipeline
 
-# 5. Feature importance analysis
-def analyze_feature_importance(classifier, preprocessor, X):
-    cat_encoder = preprocessor.transformers_[1][1]
-    cat_features = cat_encoder.get_feature_names_out()
-    num_features = preprocessor.transformers_[0][2]
-    all_features = list(num_features) + list(cat_features)
-    
-    importances = classifier.feature_importances_
-    
-    if len(all_features) == len(importances):
-        feature_importance = pd.DataFrame({
-            'feature': all_features,
-            'importance': importances
-        }).sort_values('importance', ascending=False)
-        print("\n--- Random Forest Feature Importance ---")
-        print(feature_importance.head(15))
-    else:
-        print(f"\nWarning: Feature names length ({len(all_features)}) does not match importances length ({len(importances)})")
-        print("Unable to display feature importance by name")
-
-# 6. Threshold optimization
-def optimize_threshold(classifier, preprocessor, X_test, y_test):
-    X_test_transformed = preprocessor.transform(X_test)
-    y_pred_proba = classifier.predict_proba(X_test_transformed)[:, 1]
-    precision, recall, thresholds = precision_recall_curve(y_test, y_pred_proba)
-    f1_scores = 2 * (precision * recall) / (precision + recall + 1e-10)
-    best_threshold_idx = np.argmax(f1_scores)
-    best_threshold = thresholds[best_threshold_idx] if best_threshold_idx < len(thresholds) else 0.5
-    
-    print("\n--- Random Forest Threshold Optimization ---")
-    print(f"Best threshold: {best_threshold:.4f}")
-    print(f"Best F1-Score: {f1_scores[best_threshold_idx]:.4f}")
-    print(f"Precision at best threshold: {precision[best_threshold_idx]:.4f}")
-    print(f"Recall at best threshold: {recall[best_threshold_idx]:.4f}")
-    
-    return best_threshold
-
-# 7. Main function to run everything
+# 5. Main entry
 def detect_fraud(file_path: str):
     print("Loading data...")
     df = load_data(file_path)
-    
-    print("\nDataset Information:")
-    print(f"Shape: {df.shape}")
-    print(f"Fraud distribution: {df['is_fraudulent'].value_counts(normalize=True).to_dict()}")
     
     print("\nPreprocessing data and engineering features...")
     df_processed = preprocess_data(df)
@@ -141,34 +100,13 @@ def detect_fraud(file_path: str):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
     
-    print("\nBuilding and evaluating Random Forest model...")
-    preprocessor, classifier = build_and_evaluate_model(X_train, X_test, y_train, y_test)
+    print("\nTraining pipeline...")
+    pipeline = build_and_evaluate_pipeline(X_train, X_test, y_train, y_test)
     
-    print("\nAnalyzing feature importance...")
-    analyze_feature_importance(classifier, preprocessor, X)
-    
-    print("\nOptimizing threshold...")
-    best_threshold = optimize_threshold(classifier, preprocessor, X_test, y_test)
-    print(f"Best threshold: {best_threshold}")
-    
-    # Save the RandomForestClassifier
-    model_file = 'fraud_detection_classifier_model.pkl'
-    joblib.dump(classifier, model_file, compress=1)
-    print(f"\nSaved RandomForestClassifier to: {os.path.abspath(model_file)}")
-    
-    # Save the preprocessor for use in FraudDetectionModel
-    preprocessor_file = 'fraud_detection_preprocessor.pkl'
-    joblib.dump(preprocessor, preprocessor_file)
-    print(f"Saved preprocessor to: {os.path.abspath(preprocessor_file)}")
-    
-    # Verify the saved classifier
-    saved_model = joblib.load(model_file)
-    print(f"Type of saved model: {type(saved_model)}")
-    print(f"Has predict_proba: {hasattr(saved_model, 'predict_proba')}")
-    
-    return classifier, best_threshold, preprocessor
+    # Save the full pipeline
+    pipeline_file = 'fraud_detection_pipeline.pkl'
+    joblib.dump(pipeline, pipeline_file, compress=1)
+    print(f"\nSaved pipeline to: {os.path.abspath(pipeline_file)}")
+    return pipeline
 
-pipeline, best_threshold, preprocessor = detect_fraud('synthetic_financial_data.csv')
-# model = joblib.load('fraud_detection_model.pkl')
-# print(type(model))  # Should print <class 'sklearn.pipeline.Pipeline'>
-# print(hasattr(model, 'predict_proba'))  # Should print True
+pipeline = detect_fraud('synthetic_financial_data.csv')
