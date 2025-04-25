@@ -561,49 +561,65 @@ description_mapping = {
 }
 
 
-# Callback for prediction
 @app.callback(
     Output('prediction-output', 'children'),
     Input('predict-button', 'n_clicks'),
-    [State('customer-id-input', 'value'),
-     State('merchant-id-input', 'value'),
-     State('amount-input', 'value'),
-     State('card-type-input', 'value'),
-     State('location-input', 'value'),
-     State('category-input', 'value'),
-     State('age-input', 'value'),
-     State('description-input', 'value')]
+    [
+        State('customer-id-input', 'value'),
+        State('merchant-id-input', 'value'),
+        State('amount-input', 'value'),
+        State('card-type-input', 'value'),
+        State('location-input', 'value'),
+        State('category-input', 'value'),
+        State('age-input', 'value'),
+        State('description-input', 'value')
+    ]
 )
 def predict_fraud(n_clicks, customer_id, merchant_id, amount, card_type, 
-                 location, category, age, description):
+                  location, category, age, description):
     if n_clicks == 0:
         return html.Div()
-    
-    # Prepare input data
-    input_data = {
-    'customer_id': customer_id,
-    'merchant_id': merchant_id,
-    'amount': amount,
-    'card_type': card_type_mapping.get(card_type, 0),
-    'location': location_mapping.get(location, 0),     
-    'purchase_category': category_mapping.get(category, 0),
-    'customer_age': age,
-    'transaction_description': description_mapping.get(description, 0) 
-}
 
-    
-    # Make prediction
-    result = model.predict(input_data)
-    
-    if 'error' in result:
+    # 1. Build simple input dictionary
+    input_data = {
+        'customer_id': customer_id,
+        'merchant_id': merchant_id,
+        'amount': amount,
+        'card_type': card_type,
+        'location': location,
+        'purchase_category': category,
+        'customer_age': age,
+        'transaction_description': description
+    }
+
+    # 2. Convert to single-row DataFrame
+    input_df = pd.DataFrame([input_data])
+
+    try:
+        # 3. Predict
+        prob = model.predict_proba(input_df)[0][1]
+        prediction = model.predict(input_df)[0]
+    except Exception as e:
         return html.Div([
-            html.H4("Error"),
-            html.P(result['error'])
-        ], style={**CARD_STYLE, 'background-color': '#ffecec', 'border-left': '5px solid #f44336'})
-    
-    # Display prediction result
-    fraud_probability = result['fraud_probability'] * 100
-    is_fraud = result['is_fraud']
+            html.H4("Prediction Error"),
+            html.P(str(e))
+        ], style={'backgroundColor': '#ffecec', 'padding': '10px'})
+
+    # 4. Display result
+    result_style = {
+        'padding': '20px',
+        'borderRadius': '8px',
+        'marginTop': '20px',
+        'color': 'white',
+        'backgroundColor': '#e74c3c' if prediction else '#2ecc71'
+    }
+
+    return html.Div([
+        html.H4("Prediction Result"),
+        html.P(f"Fraud Probability: {prob:.2%}"),
+        html.H5("Prediction: {}".format("Fraudulent" if prediction else "Legitimate"))
+    ], style=result_style)
+
     
     # Change color based on prediction
     if is_fraud:
