@@ -1,6 +1,7 @@
 dash==2.9.3
 numpy
 pandas
+streamlit
 scikit_learn
 plotly
 gunicorn
