@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import joblib
+import streamlit as st
 
 class FraudDetectionModel:
     def __init__(self, model_path='fraud_detection_model.pkl'):
@@ -23,7 +24,6 @@ class FraudDetectionModel:
         except Exception as e:
             print(f"Error loading model: {e}")
             return None
-    
 
     def preprocess_input(self, input_data):
         df = pd.DataFrame([input_data])
@@ -114,3 +114,94 @@ class FraudDetectionModel:
             data.append(transaction)
         
         return pd.DataFrame(data)
+
+# Streamlit Interface
+def main():
+    st.title("Fraud Detection System")
+    
+    # Initialize model
+    fraud_model = FraudDetectionModel()
+    
+    # Input form
+    with st.form("transaction_form"):
+        st.header("Enter Transaction Details")
+        
+        # Numeric inputs
+        amount = st.number_input("Transaction Amount ($)", min_value=0.0, value=100.0)
+        customer_id = st.number_input("Customer ID", min_value=10000, max_value=99999, value=10000)
+        merchant_id = st.number_input("Merchant ID", min_value=1000, max_value=9999, value=1000)
+        customer_age = st.number_input("Customer Age", min_value=18, max_value=85, value=30)
+        
+        # Categorical inputs
+        card_type = st.selectbox("Card Type", ['Visa', 'Mastercard', 'Amex', 'Discover'])
+        location = st.selectbox("Location", ['Online', 'In-store', 'Mobile', 'ATM'])
+        purchase_category = st.selectbox("Purchase Category", ['Retail', 'Grocery', 'Travel', 'Entertainment', 'Restaurant'])
+        transaction_description = st.selectbox("Transaction Description", ['Regular Purchase', 'Subscription', 'One-time Payment'])
+        
+        # Additional numeric inputs
+        is_weekend = st.selectbox("Is Weekend", [0, 1])
+        hour = st.number_input("Hour of Day", min_value=0, max_value=23, value=12)
+        day_of_week = st.number_input("Day of Week (0-6)", min_value=0, max_value=6, value=3)
+        month = st.number_input("Month (1-12)", min_value=1, max_value=12, value=6)
+        
+        # Placeholder values for features not exposed in UI
+        customer_avg_amount = st.number_input("Customer Avg Amount", min_value=50.0, max_value=500.0, value=100.0)
+        customer_std_amount = st.number_input("Customer Std Amount", min_value=10.0, max_value=100.0, value=20.0)
+        customer_max_amount = st.number_input("Customer Max Amount", min_value=100.0, max_value=1000.0, value=500.0)
+        customer_transaction_count = st.number_input("Customer Transaction Count", min_value=1, max_value=50, value=10)
+        merchant_avg_amount = st.number_input("Merchant Avg Amount", min_value=50.0, max_value=500.0, value=100.0)
+        merchant_std_amount = st.number_input("Merchant Std Amount", min_value=10.0, max_value=100.0, value=20.0)
+        merchant_max_amount = st.number_input("Merchant Max Amount", min_value=100.0, max_value=1000.0, value=500.0)
+        merchant_transaction_count = st.number_input("Merchant Transaction Count", min_value=1, max_value=100, value=20)
+        merchant_fraud_rate = st.number_input("Merchant Fraud Rate", min_value=0.0, max_value=0.1, value=0.01)
+        amount_deviation = st.number_input("Amount Deviation", min_value=-100.0, max_value=100.0, value=0.0)
+        
+        # Submit button
+        submitted = st.form_submit_button("Predict Fraud")
+        
+        if submitted:
+            # Create input dictionary
+            input_data = {
+                'customer_id': customer_id,
+                'merchant_id': merchant_id,
+                'amount': amount,
+                'card_type': card_type,
+                'location': location,
+                'purchase_category': purchase_category,
+                'customer_age': customer_age,
+                'transaction_description': transaction_description,
+                'is_weekend': is_weekend,
+                'customer_avg_amount': customer_avg_amount,
+                'customer_std_amount': customer_std_amount,
+                'customer_max_amount': customer_max_amount,
+                'customer_transaction_count': customer_transaction_count,
+                'merchant_avg_amount': merchant_avg_amount,
+                'merchant_std_amount': merchant_std_amount,
+                'merchant_max_amount': merchant_max_amount,
+                'merchant_transaction_count': merchant_transaction_count,
+                'merchant_fraud_rate': merchant_fraud_rate,
+                'amount_deviation': amount_deviation,
+                'hour': hour,
+                'day_of_week': day_of_week,
+                'month': month
+            }
+            
+            # Make prediction
+            result = fraud_model.predict(input_data)
+            
+            # Display results
+            if "error" in result:
+                st.error(result["error"])
+            else:
+                st.subheader("Prediction Results")
+                st.write(f"Fraud Probability: {result['fraud_probability']:.2%}")
+                st.write(f"Is Fraudulent: {'Yes' if result['is_fraud'] else 'No'}")
+                
+                # Visual indicator
+                if result['is_fraud']:
+                    st.error("⚠️ High Fraud Risk Detected!")
+                else:
+                    st.success("✅ Transaction Appears Safe")
+
+if __name__ == "__main__":
+    main()
