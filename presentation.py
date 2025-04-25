@@ -531,6 +531,36 @@ app.layout = html.Div([
     ], style={'font-family': 'Arial, sans-serif'})
 ], style=CONTENT_STYLE)
 
+# Define mappings for categorical inputs
+card_type_mapping = {
+    'Visa': 0,
+    'Mastercard': 1,
+    'Amex': 2,
+    'Discover': 3
+}
+
+location_mapping = {
+    'Online': 0,
+    'In-store': 1,
+    'Mobile': 2,
+    'ATM': 3
+}
+
+category_mapping = {
+    'Retail': 0,
+    'Grocery': 1,
+    'Travel': 2,
+    'Entertainment': 3,
+    'Restaurant': 4
+}
+
+description_mapping = {
+    'Regular Purchase': 0,
+    'Subscription': 1,
+    'One-time Payment': 2
+}
+
+
 # Callback for prediction
 @app.callback(
     Output('prediction-output', 'children'),
@@ -551,15 +581,16 @@ def predict_fraud(n_clicks, customer_id, merchant_id, amount, card_type,
     
     # Prepare input data
     input_data = {
-        'customer_id': customer_id,
-        'merchant_id': merchant_id,
-        'amount': amount,
-        'card_type': card_type,
-        'location': location,
-        'purchase_category': category,
-        'customer_age': age,
-        'transaction_description': description
-    }
+    'customer_id': customer_id,
+    'merchant_id': merchant_id,
+    'amount': amount,
+    'card_type': card_type_mapping.get(card_type, 0),
+    'location': location_mapping.get(location, 0),     
+    'purchase_category': category_mapping.get(category, 0),
+    'customer_age': age,
+    'transaction_description': description_mapping.get(description, 0) 
+}
+
     
     # Make prediction
     result = model.predict(input_data)
