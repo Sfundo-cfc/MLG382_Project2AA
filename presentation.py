@@ -462,7 +462,8 @@ app.layout = html.Div([
                             html.Div([
                                 html.Label("Location", style={'font-weight': 'bold', 'margin-bottom': '5px'}),
                                 dcc.Dropdown(
-                                    id="location-input Immerse yourself in the heart of the action with our exclusive UFC betting odds, where every punch, kick, and submission counts. Bet on your favorite fighters, predict the outcomes, and feel the adrenaline rush with every octagon moment. Whether you're backing the reigning champ or an underdog with heart, our odds give you the edge to make every fight night unforgettable. Ready to step into the cage? Place your bets now and let the games begin!","options=[
+                                    id="location-input",
+                                    options=[
                                         {'label': 'Online', 'value': 'Online'},
                                         {'label': 'In-store', 'value': 'In-store'},
                                         {'label': 'Mobile', 'value': 'Mobile'},
