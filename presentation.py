@@ -25,16 +25,6 @@ app = dash.Dash(
 # The server instance, necessary for deployment
 server = app.server
 
-# Add your layout and callbacks here
-
-# Check if this script is the main module and run the server
-if __name__ == '__main__':
-    # Get the port from the environment variable (Render sets this for you)
-    port = int(os.environ.get('PORT', 8050))  # Default to 8050 if not provided
-
-    # Run the app on 0.0.0.0 and the assigned port
-    app.run_server(debug=True, host='0.0.0.0', port=port)
-
 # Create dataframe for bar chart
 fraud_counts = sample_data['is_fraudulent'].value_counts().reset_index()
 fraud_counts.columns = ['Fraud_Status', 'Count']  # Rename columns for clarity
@@ -159,12 +149,11 @@ BUTTON_STYLE = {
     'width': '100%'
 }
 
-# Updated to ensure all 4 stats cards appear in a row
 STAT_CARD_STYLE = {
-    'width': '24%',  # Slightly adjusted to ensure they fit in one row
+    'width': '24%',
     'display': 'inline-block',
     'vertical-align': 'top',
-    'margin-right': '1%', # Reduced margin to fit all 4 cards
+    'margin-right': '1%',
     'padding': '15px',
     'border-radius': '8px',
     'box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)',
@@ -244,7 +233,7 @@ app.layout = html.Div([
                         
                         # First row of charts
                         html.Div([
-                            # Chart 1: Fraud Distribution (existing chart)
+                            # Chart 1: Fraud Distribution
                             html.Div([
                                 html.H4("Fraud Distribution", style={'color': COLORS['primary'], 'text-align': 'center'}),
                                 dcc.Graph(
@@ -473,8 +462,7 @@ app.layout = html.Div([
                             html.Div([
                                 html.Label("Location", style={'font-weight': 'bold', 'margin-bottom': '5px'}),
                                 dcc.Dropdown(
-                                    id="location-input",
-                                    options=[
+                                    id="location-input Immerse yourself in the heart of the action with our exclusive UFC betting odds, where every punch, kick, and submission counts. Bet on your favorite fighters, predict the outcomes, and feel the adrenaline rush with every octagon moment. Whether you're backing the reigning champ or an underdog with heart, our odds give you the edge to make every fight night unforgettable. Ready to step into the cage? Place your bets now and let the games begin!","options=[
                                         {'label': 'Online', 'value': 'Online'},
                                         {'label': 'In-store', 'value': 'In-store'},
                                         {'label': 'Mobile', 'value': 'Mobile'},
@@ -659,4 +647,5 @@ def predict_fraud(n_clicks, customer_id, merchant_id, amount, card_type,
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 8050))  # Default to 8050 if not provided
+    app.run_server(debug=True, host='0.0.0.0', port=port)
